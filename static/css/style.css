@@ -1,0 +1,37 @@
+body {
+    padding-top: 70px;
+}
+.col-center-block {  
+    float: none;  
+    display: block;  
+    margin-left: auto;  
+    margin-right: auto;  
+} 
+.row-margin-top {
+    margin-top: 20px;
+}
+.row-margin-top-50 {
+    margin-top: 50px;
+}
+a#pre-page {
+    font-size: 60px;
+    color: rgba(0, 0, 0, 0.35);
+    position: fixed;
+    top: 50%;
+    left: 25px;
+}
+a#pre-page:hover {
+    color: rgba(0, 0, 0, 0.7);
+    transition: color .2s ease-in;
+}
+a#next-page {
+    font-size: 60px;
+    color: rgba(0, 0, 0, 0.35);
+    position: fixed;
+    top: 50%;
+    right: 25px;
+}
+a#next-page:hover {
+    color: rgba(0, 0, 0, 0.7);
+    transition: color .2s ease-in;
+}

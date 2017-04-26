@@ -7,9 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>妹子图 - 搜罗全网妹子图片</title>
     <!-- Bootstrap -->
-    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
     <!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
-    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+    <link href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" rel="stylesheet">
     <!-- 自定义Style.css -->
     <link rel="stylesheet" href="/static/css/style.css">
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -38,15 +38,7 @@
                     <li><a href="/try">留言反馈</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">登录器下载 <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="http://ofxw5dhyq.bkt.clouddn.com/prissh%E4%BB%A3%E7%90%86_%E5%85%8D%E8%B4%B9%E7%89%88.zip">免费版下载 <span class="glyphicon glyphicon-download-alt"></span></a></li>
-                            <li><a href="http://ofxw5dhyq.bkt.clouddn.com/prissh%E4%BB%A3%E7%90%86_%E6%94%B6%E8%B4%B9%E7%89%88.zip">收费版下载 <span class="glyphicon glyphicon-download-alt"></span></a></li>
-                            <li role="separator" class="divider"></li>
-                            <li><a href="http://sh.fuli.ga/18.html" target="_blank">收费版介绍 <span class="glyphicon glyphicon-book"></span></a></li>
-                        </ul>
-                    </li>
+                    <li><a href="/review">管理</a></li>
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
@@ -54,19 +46,24 @@
     </nav>
     <div class="container">
         <div class="row" id="pics">
-            <div class="thumbnil col-md-4 col-sm-6">
-
-            </div>
         </div>
+        <div class="row row-margin-top-50"></div>
     </div>
+    <a id="pre-page" href="{{ .pre }}"><span class="glyphicon glyphicon-menu-left"></span></a>
+    <a id="next-page" href="{{ .next }}"><span class="glyphicon glyphicon-menu-right"></span></a>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <!--<script src="/static/js/jquery.min.js"></script>-->
-    <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <!--<script src="/static/js/bootstrap.min.js"></script>-->
-    <script src="http://apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="/static/js/mp.mansory.js"></script>
     <script src="/static/js/common.js"></script>
     <script type="text/javascript">
+        var current = 1;
+        $(function(){
+            get_next_pics(current);
+        });
+
     </script>
 </body>
 

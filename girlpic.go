@@ -115,6 +115,11 @@ type GirlPic struct {
 	CreateTime time.Time `xorm:"created"`
 }
 
+type tPic struct {
+	URL string `json:"url"`
+	ID  int64  `json:"id"`
+}
+
 func getPicNum() int {
 	p := new(GirlPic)
 	length, err := db.Where("`review` = ?", 1).Count(p)
@@ -125,7 +130,7 @@ func getPicNum() int {
 	return int(length)
 }
 
-func getPics(page int) []string {
+func getPics(page int) []tPic {
 	num := getPicNum()
 	if num == 0 {
 		info("number of pics is:", num)
@@ -142,12 +147,15 @@ func getPics(page int) []string {
 		return nil
 	}
 	defer rows.Close()
-	urls := make([]string, 0)
+	pics := make([]tPic, 0)
 	for rows.Next() {
 		rows.Scan(pic)
-		urls = append(urls, pic.URL)
+		pics = append(pics, tPic{
+			URL: pic.URL,
+			ID:  pic.ID,
+		})
 	}
-	return urls
+	return pics
 }
 
 func getPicWaitReview() GirlPic {
@@ -166,8 +174,8 @@ func getPicWaitReview() GirlPic {
 func main() {
 	e := gin.Default()
 
-	e.Static("/static", "./statics")
-	e.StaticFile("/favicon.ico", "./statics/favicon.ico")
+	e.Static("/static", "./static")
+	e.StaticFile("/favicon.ico", "./static/favicon.ico")
 	e.LoadHTMLGlob("./tmpls/*")
 
 	e.GET("/", func(c *gin.Context) {
@@ -192,7 +200,7 @@ func main() {
 		"admin": "shuai6563",
 	}))
 	manage.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "%v", "/review/")
+		c.HTML(http.StatusOK, "review.html", nil)
 	})
 	manage.GET("/next", func(c *gin.Context) {
 		pic := getPicWaitReview()
@@ -210,7 +218,7 @@ func main() {
 			return
 		}
 		switch c.Param("action") {
-		case "success":
+		case "accept":
 			pic.Review = true
 			effect, err := db.ID(id).Cols("review").Update(pic)
 			if err != nil {
@@ -222,7 +230,7 @@ func main() {
 				"effect": effect,
 			})
 			break
-		case "fail":
+		case "reject":
 			effect, err := db.ID(id).Delete(pic)
 			if err != nil {
 				errorlog("database delete fail, error:", err)
