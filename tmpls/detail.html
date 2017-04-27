@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>妹子图 - 搜罗全网妹子图片</title>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap.min.css">
+    <!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+    <!-- 自定义Style.css -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-prissh-nvabar-collapse" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    </button>
+                <a class="navbar-brand" href="#">妹子图</a>
+            </div>
+            <div class="collapse navbar-collapse" id="bs-prissh-nvabar-collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="/">首页</a></li>
+                    <li><a href="/comments">留言反馈</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a class="active">管理</a></li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+    </nav>
+    <div class="container">
+        <div class="row">
+            <div class="col-center-block thumbnil col-md-4 col-sm-6" id="pic" data-id="{{ .ID }}">
+                <img src="{{ .URL }}" alt="" class="img-responsive">
+            </div>
+        </div>
+        <div class="row row-margin-top">
+            <div class="col-center-block col-md-4 col-sm-6">
+                <button class="btn btn-success pull-left" type="button" id="btn-like"><span class="glyphicon glyphicon-fire"></span> 必火无疑 <span class="badge">{{ .Like }}</span></button>
+                <button class="btn btn-danger pull-right" type="button" id="btn-unlike"><span class="glyphicon glyphicon-eye-close"></span> 没法看了 <span class="badge">{{ .Unlike }}</span></button>
+            </div>
+        </div>
+        <div class="row row-margin-top"></div>
+    </div>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <!--<script src="/static/js/jquery.min.js"></script>-->
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <!--<script src="/static/js/bootstrap.min.js"></script>-->
+    <script src="http://apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="/static/js/common.js"></script>
+    <script>
+        $(function(){
+            $('#pic .reviewbox').width($('#pic img').width());
+            $('#pic').mouseenter(function(){
+                $('#pic .reviewbox').collapse('show');
+            });
+            $('#pic').mouseleave(function(){
+                $('#pic .reviewbox').collapse('hide');
+            });
+            $('#a-like').click(function(){
+                var id = $('#pic').data('id');
+                $.get("/detail/"+id+"/like",
+                    function (data, textStatus, jqXHR) {
+                        if (textStatus == "success") {
+                            var badge = $('#a-like span.badge');
+                            badge.text(Number(badge.text())+1);
+                        }
+                    }
+                );
+            });
+            $('#a-unlike').click(function(){
+                var id = $('#pic').data('id');
+                $.get("/detail/"+id+"/unlike",
+                    function (data, textStatus, jqXHR) {
+                        if (textStatus == "success") {
+                            var badge = $('#a-unlike span.badge');
+                            badge.text(Number(badge.text())+1);
+                        }
+                    }
+                );
+            });
+            $('#btn-like').click(function(){
+                var id = $('#pic').data('id');
+                $.get("/detail/"+id+"/like",
+                    function (data, textStatus, jqXHR) {
+                        if (textStatus == "success") {
+                            var badge = $('#btn-like span.badge');
+                            badge.text(Number(badge.text())+1);
+                        }
+                    }
+                );
+            });
+            $('#btn-unlike').click(function(){
+                var id = $('#pic').data('id');
+                $.get("/detail/"+id+"/unlike",
+                    function (data, textStatus, jqXHR) {
+                        if (textStatus == "success") {
+                            var badge = $('#btn-unlike span.badge');
+                            badge.text(Number(badge.text())+1);
+                        }
+                    }
+                );
+            });
+        });
+    </script>
+</body>
+
+</html>

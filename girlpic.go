@@ -116,8 +116,10 @@ type GirlPic struct {
 }
 
 type tPic struct {
-	URL string `json:"url"`
-	ID  int64  `json:"id"`
+	URL    string `json:"url"`
+	ID     int64  `json:"id"`
+	Like   int    `json:"like"`
+	Unlike int    `json:"unlike"`
 }
 
 func getPicNum() int {
@@ -151,8 +153,10 @@ func getPics(page int) []tPic {
 	for rows.Next() {
 		rows.Scan(pic)
 		pics = append(pics, tPic{
-			URL: pic.URL,
-			ID:  pic.ID,
+			URL:    pic.URL,
+			ID:     pic.ID,
+			Like:   pic.Like,
+			Unlike: pic.Unlike,
 		})
 	}
 	return pics
@@ -186,6 +190,52 @@ func main() {
 		}
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
+	e.GET("/detail/:i", func(c *gin.Context) {
+		picID, err := strconv.Atoi(c.Param("i"))
+		if err != nil {
+			info("pass wrong pic id to route")
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		pic := new(GirlPic)
+		exist, err := db.ID(picID).Get(pic)
+		if err != nil {
+			errorlog("database query fail, error:", err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		if !exist {
+			info("pass wrong pic id to database")
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		c.HTML(http.StatusOK, "detail.html", pic)
+	})
+	e.GET("/detail/:i/:action", func(c *gin.Context) {
+		if c.Request.Header.Get("X-Requested-With") == "XMLHttpRequest" {
+			picID, err := strconv.Atoi(c.Param("i"))
+			if err != nil {
+				info("pass wrong pic id to route")
+				c.AbortWithStatus(http.StatusBadRequest)
+				return
+			}
+			action := c.Param("action")
+			switch action {
+			case "like":
+				db.Exec("update `girl_pic` set `like` = `like` + 1 where `id`=?", picID)
+				c.String(http.StatusOK, "%v", "ok")
+				break
+			case "unlike":
+				db.Exec("update `girl_pic` set `unlike` = `unlike` + 1 where `id`=?", picID)
+				c.String(http.StatusOK, "%v", "ok")
+				break
+			default:
+				c.AbortWithStatus(http.StatusBadRequest)
+			}
+		} else {
+			c.AbortWithStatus(http.StatusMethodNotAllowed)
+		}
+	})
 	e.GET("/page/:i", func(c *gin.Context) {
 		page, err := strconv.Atoi(c.Param("i"))
 		if err != nil {
@@ -203,48 +253,55 @@ func main() {
 		c.HTML(http.StatusOK, "review.html", nil)
 	})
 	manage.GET("/next", func(c *gin.Context) {
-		pic := getPicWaitReview()
-		c.JSON(http.StatusOK, gin.H{
-			"id":  pic.ID,
-			"url": pic.URL,
-		})
+		if c.Request.Header.Get("X-Requested-With") == "XMLHttpRequest" {
+			pic := getPicWaitReview()
+			c.JSON(http.StatusOK, gin.H{
+				"id":  pic.ID,
+				"url": pic.URL,
+			})
+		} else {
+			c.AbortWithStatus(http.StatusMethodNotAllowed)
+		}
 	})
 	manage.GET("/save/:id/:action", func(c *gin.Context) {
-		pic := new(GirlPic)
-		id, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			errorlog("pass wrong id param to route")
-			c.AbortWithStatus(http.StatusBadRequest)
-			return
-		}
-		switch c.Param("action") {
-		case "accept":
-			pic.Review = true
-			effect, err := db.ID(id).Cols("review").Update(pic)
+		if c.Request.Header.Get("X-Requested-With") == "XMLHttpRequest" {
+			pic := new(GirlPic)
+			id, err := strconv.Atoi(c.Param("id"))
 			if err != nil {
-				errorlog("database update fail, error:", err)
-				c.AbortWithStatus(http.StatusInternalServerError)
+				errorlog("pass wrong id param to route")
+				c.AbortWithStatus(http.StatusBadRequest)
 				return
 			}
-			c.JSON(http.StatusOK, gin.H{
-				"effect": effect,
-			})
-			break
-		case "reject":
-			effect, err := db.ID(id).Delete(pic)
-			if err != nil {
-				errorlog("database delete fail, error:", err)
-				c.AbortWithStatus(http.StatusInternalServerError)
-				return
+			switch c.Param("action") {
+			case "accept":
+				pic.Review = true
+				effect, err := db.ID(id).Cols("review").Update(pic)
+				if err != nil {
+					errorlog("database update fail, error:", err)
+					c.AbortWithStatus(http.StatusInternalServerError)
+					return
+				}
+				c.JSON(http.StatusOK, gin.H{
+					"effect": effect,
+				})
+				break
+			case "reject":
+				effect, err := db.ID(id).Delete(pic)
+				if err != nil {
+					errorlog("database delete fail, error:", err)
+					c.AbortWithStatus(http.StatusInternalServerError)
+					return
+				}
+				c.JSON(http.StatusOK, gin.H{
+					"effect": effect,
+				})
+				break
+			default:
+				c.AbortWithStatus(http.StatusBadRequest)
 			}
-			c.JSON(http.StatusOK, gin.H{
-				"effect": effect,
-			})
-			break
-		default:
-			c.AbortWithStatus(http.StatusBadRequest)
+		} else {
+			c.AbortWithStatus(http.StatusMethodNotAllowed)
 		}
-
 	})
 	if os.Getenv("APPENV") != "" {
 		e.Run(":80")
