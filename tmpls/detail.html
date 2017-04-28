@@ -67,35 +67,6 @@
     <script src="/static/js/common.js"></script>
     <script>
         $(function(){
-            $('#pic .reviewbox').width($('#pic img').width());
-            $('#pic').mouseenter(function(){
-                $('#pic .reviewbox').collapse('show');
-            });
-            $('#pic').mouseleave(function(){
-                $('#pic .reviewbox').collapse('hide');
-            });
-            $('#a-like').click(function(){
-                var id = $('#pic').data('id');
-                $.get("/detail/"+id+"/like",
-                    function (data, textStatus, jqXHR) {
-                        if (textStatus == "success") {
-                            var badge = $('#a-like span.badge');
-                            badge.text(Number(badge.text())+1);
-                        }
-                    }
-                );
-            });
-            $('#a-unlike').click(function(){
-                var id = $('#pic').data('id');
-                $.get("/detail/"+id+"/unlike",
-                    function (data, textStatus, jqXHR) {
-                        if (textStatus == "success") {
-                            var badge = $('#a-unlike span.badge');
-                            badge.text(Number(badge.text())+1);
-                        }
-                    }
-                );
-            });
             $('#btn-like').click(function(){
                 var id = $('#pic').data('id');
                 $.get("/detail/"+id+"/like",
