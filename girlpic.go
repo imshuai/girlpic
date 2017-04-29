@@ -105,6 +105,15 @@ func init() {
 	info("Server initialization complete! Current directory is [", dir, "] , PathSeparator is [", delimiter, "]")
 }
 
+//Comments define database struct for table comments
+type Comments struct {
+	ID         int64     `json:"id"                                   form:"id"`
+	Auther     string    `xorm:"varchar(20)"       json:"auther"      form:"auther"     binding:"required"`
+	ReplyTo    int64     `xorm:"notnull default 0" json:"reply_to"    form:"reply_to"   binding:"required"`
+	Content    string    `xorm:"text"              json:"content"     form:"content"    binding:"required"`
+	CreateTime time.Time `xorm:"created"           json:"create_time" form:"create_time"`
+}
+
 //GirlPic define database struct for table girl_pic
 type GirlPic struct {
 	ID         int64
@@ -245,6 +254,21 @@ func main() {
 		}
 		pics := getPics(page)
 		c.JSON(http.StatusOK, pics)
+	})
+	e.GET("/comments", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "comment.html", nil)
+	})
+	e.POST("/comments/new", func(c *gin.Context) {
+		if c.Request.Header.Get("X-Requested-With") == "XMLHttpRequest" {
+			var com Comments
+			if c.Bind(&com) == nil {
+
+			} else {
+				c.AbortWithStatus(http.StatusBadRequest)
+			}
+		} else {
+			c.AbortWithStatus(http.StatusMethodNotAllowed)
+		}
 	})
 	manage := e.Group("/review", gin.BasicAuth(gin.Accounts{
 		"admin": "shuai6563",
