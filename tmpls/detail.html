@@ -74,6 +74,8 @@
                         if (textStatus == "success") {
                             var badge = $('#btn-like span.badge');
                             badge.text(Number(badge.text())+1);
+                            $('#btn-like').addClass('diabled');
+                            $('#btn-unlike').addClass('diabled');
                         }
                     }
                 );
@@ -85,6 +87,8 @@
                         if (textStatus == "success") {
                             var badge = $('#btn-unlike span.badge');
                             badge.text(Number(badge.text())+1);
+                            $('#btn-like').addClass('diabled');
+                            $('#btn-unlike').addClass('diabled');
                         }
                     }
                 );
