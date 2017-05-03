@@ -45,17 +45,8 @@
         </div>
     </nav>
     <div class="container">
-        <div class="row">
-            <div class="col-center-block thumbnil col-md-4 col-sm-6" id="pic">
-
-            </div>
-        </div>
-        <div class="row row-margin-top">
-            <div class="col-center-block col-md-4 col-sm-6">
-                <button class="btn btn-success pull-left" type="button" id="btn-accept">通过</button>
-                <button class="btn btn-danger pull-right" type="button" id="btn-reject">回绝</button>
-            </div>
-        </div>
+        <div class="row" id="pics"></div>
+        <div class="row row-margin-top-50"></div>
     </div>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <!--<script src="/static/js/jquery.min.js"></script>-->
@@ -63,26 +54,33 @@
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <!--<script src="/static/js/bootstrap.min.js"></script>-->
     <script src="http://apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="//cdn.bootcss.com/masonry/4.2.0/masonry.pkgd.min.js"></script>
+    <script src="//cdn.bootcss.com/jquery.imagesloaded/4.1.1/imagesloaded.min.js"></script>
     <script src="/static/js/common.js"></script>
     <script>
         $(function(){
+            $('#pics').masonry();
             get_next();
-            $('#btn-accept').click(function () { 
-                var id=$('#pic').data('id');
-                $.get("/review/save/"+id+"/accept",function (data,textStatus) { 
-                    if (textStatus == "success") {
-                        get_next();
-                    }
-                });
+            $(window).scroll( function() {
+                totalheight = parseFloat($(window).height()) + parseFloat($(window).scrollTop());     //浏览器的高度加上滚动条的高度 
+
+                if ($(document).height() <= totalheight)     //当文档的高度小于或者等于总的高度的时候，开始动态加载数据
+                { 
+                    //加载数据
+                    get_next();
+                }
             });
-            $('#btn-reject').click(function () { 
-                var id=$('#pic').data('id');
-                $.get("/review/save/"+id+"/reject",function (data,textStatus) { 
-                    if (textStatus == "success") {
-                        get_next();
+            $('#pics').delegate('.item','click',function(){
+                var obj = $(this);
+                var pid = obj.data('id');
+                $.getJSON("/review/delete/"+pid,
+                    function (data, textStatus, jqXHR) {
+                        if (textStatus == "success"){
+                            $('#pics').masonry('remove',obj).masonry('layout');
+                        }
                     }
-                });
-            });
+                );
+            })
         });
     </script>
 </body>

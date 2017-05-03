@@ -46,8 +46,8 @@
     </nav>
     <div class="container">
         <div class="row">
-            <div class="col-center-block thumbnil col-md-4 col-sm-6" id="pic" data-id="{{ .ID }}">
-                <img src="{{ .URL }}" alt="" class="img-responsive">
+            <div class="col-center-block thumbnil col-md-9 col-sm-12" id="pic" data-id="{{ .ID }}">
+                <img src="{{ .URL }}" alt="" class="img-responsive center-block">
             </div>
         </div>
         <div class="row row-margin-top">
@@ -74,8 +74,8 @@
                         if (textStatus == "success") {
                             var badge = $('#btn-like span.badge');
                             badge.text(Number(badge.text())+1);
-                            $('#btn-like').addClass('diabled');
-                            $('#btn-unlike').addClass('diabled');
+                            $('#btn-like').addClass('disabled');
+                            $('#btn-unlike').addClass('disabled');
                         }
                     }
                 );
@@ -87,8 +87,8 @@
                         if (textStatus == "success") {
                             var badge = $('#btn-unlike span.badge');
                             badge.text(Number(badge.text())+1);
-                            $('#btn-like').addClass('diabled');
-                            $('#btn-unlike').addClass('diabled');
+                            $('#btn-like').addClass('disabled');
+                            $('#btn-unlike').addClass('disabled');
                         }
                     }
                 );

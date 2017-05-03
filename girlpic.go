@@ -26,7 +26,7 @@ var err error
 var delimiter string
 var dir string
 
-const numPerPage = 12
+const numPerPage = 20
 
 type dbConfig struct {
 	DBip      string `json:"db_ip"`
@@ -171,17 +171,27 @@ func getPics(page int) []tPic {
 	return pics
 }
 
-func getPicWaitReview() GirlPic {
+func getPicWaitReview() []tPic {
+	pics := make([]tPic, 0)
 	pic := new(GirlPic)
-	exist, err := db.Where("`review` = ?", 0).Get(pic)
+	rows, err := db.Where("`review` = ?", 0).Limit(30).Rows(pic)
 	if err != nil {
 		errorlog("database query fail, error:", err)
-		return GirlPic{}
+		return pics
 	}
-	if !exist {
-		info("all pics been reviewd")
+	defer rows.Close()
+	for rows.Next() {
+		rows.Scan(pic)
+		pic.Review = true
+		db.ID(pic.ID).Cols("review").Update(pic)
+		pics = append(pics, tPic{
+			URL:    pic.URL,
+			ID:     pic.ID,
+			Like:   pic.Like,
+			Unlike: pic.Unlike,
+		})
 	}
-	return *pic
+	return pics
 }
 
 func main() {
@@ -278,16 +288,13 @@ func main() {
 	})
 	manage.GET("/next", func(c *gin.Context) {
 		if c.Request.Header.Get("X-Requested-With") == "XMLHttpRequest" {
-			pic := getPicWaitReview()
-			c.JSON(http.StatusOK, gin.H{
-				"id":  pic.ID,
-				"url": pic.URL,
-			})
+			pics := getPicWaitReview()
+			c.JSON(http.StatusOK, pics)
 		} else {
 			c.AbortWithStatus(http.StatusMethodNotAllowed)
 		}
 	})
-	manage.GET("/save/:id/:action", func(c *gin.Context) {
+	manage.GET("/delete/:id", func(c *gin.Context) {
 		if c.Request.Header.Get("X-Requested-With") == "XMLHttpRequest" {
 			pic := new(GirlPic)
 			id, err := strconv.Atoi(c.Param("id"))
@@ -296,33 +303,15 @@ func main() {
 				c.AbortWithStatus(http.StatusBadRequest)
 				return
 			}
-			switch c.Param("action") {
-			case "accept":
-				pic.Review = true
-				effect, err := db.ID(id).Cols("review").Update(pic)
-				if err != nil {
-					errorlog("database update fail, error:", err)
-					c.AbortWithStatus(http.StatusInternalServerError)
-					return
-				}
-				c.JSON(http.StatusOK, gin.H{
-					"effect": effect,
-				})
-				break
-			case "reject":
-				effect, err := db.ID(id).Delete(pic)
-				if err != nil {
-					errorlog("database delete fail, error:", err)
-					c.AbortWithStatus(http.StatusInternalServerError)
-					return
-				}
-				c.JSON(http.StatusOK, gin.H{
-					"effect": effect,
-				})
-				break
-			default:
-				c.AbortWithStatus(http.StatusBadRequest)
+			effect, err := db.ID(id).Delete(pic)
+			if err != nil {
+				errorlog("database delete fail, error:", err)
+				c.AbortWithStatus(http.StatusInternalServerError)
+				return
 			}
+			c.JSON(http.StatusOK, gin.H{
+				"effect": effect,
+			})
 		} else {
 			c.AbortWithStatus(http.StatusMethodNotAllowed)
 		}

@@ -1,18 +1,22 @@
 function get_next() {
-        $.getJSON("/review/next",
+    $.getJSON("/review/next",
         function (data, textStatus, jqXHR) {
             if (textStatus == "success") {
-                var pic = $('#pic');
-                pic.empty();
-                var a = $('<a></a>');
-                var img = $('<img>');
-                img.attr('src',data.url);
-                img.addClass('img-responsive');
-                a.append(img);
-                a.attr('href',data.url);
-                a.attr('target','_blank');
-                pic.append(a);
-                pic.data('id',data.id);
+                $.each(data, function (indexInArray, valueOfElement) { 
+                    var img = $('<img></img>');
+                    img.attr('src',valueOfElement.url);
+                    img.addClass('img-responsive center-block');
+                    var pic = $('<div></div>');
+                    pic.addClass('item col-lg-2 col-md-3 col-sm-6'); 
+                    pic.data('id',valueOfElement.id);
+                    pic.append(img);
+                    var pics = $('#pics');
+                    pics.append(pic);
+                    $('#pics').masonry('addItems',pic);
+                });
+                $('#pics').imagesLoaded(function(){
+                    $('#pics').masonry('layout');
+                });
             }
         }
     );
