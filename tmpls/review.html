@@ -7,9 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>妹子图 - 搜罗全网妹子图片</title>
     <!-- Bootstrap -->
-    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
-    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
     <!-- 自定义Style.css -->
     <link rel="stylesheet" href="/static/css/style.css">
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -48,35 +48,33 @@
         <div class="row" id="pics"></div>
         <div class="row row-margin-top-50"></div>
     </div>
+    <div class="footer">
+        <button type="button" class="btn btn-default center-block" id="more">加载更多</button>
+        <div class="row row-margin-top-50"></div>
+    </div>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <!--<script src="/static/js/jquery.min.js"></script>-->
-    <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <!--<script src="/static/js/bootstrap.min.js"></script>-->
-    <script src="http://apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="//cdn.bootcss.com/masonry/4.2.0/masonry.pkgd.min.js"></script>
     <script src="//cdn.bootcss.com/jquery.imagesloaded/4.1.1/imagesloaded.min.js"></script>
     <script src="/static/js/common.js"></script>
     <script>
-        $(function(){
+        $(function() {
             $('#pics').masonry();
-            get_next();
-            $(window).scroll( function() {
-                totalheight = parseFloat($(window).height()) + parseFloat($(window).scrollTop());     //浏览器的高度加上滚动条的高度 
-
-                if ($(document).height() <= totalheight)     //当文档的高度小于或者等于总的高度的时候，开始动态加载数据
-                { 
-                    //加载数据
-                    get_next();
-                }
+            $('#more').click(function() {
+                get_next();
             });
-            $('#pics').delegate('.item','click',function(){
+            get_next();
+            $('#pics').delegate('.item', 'click', function() {
                 var obj = $(this);
                 var pid = obj.data('id');
-                $.getJSON("/review/delete/"+pid,
-                    function (data, textStatus, jqXHR) {
-                        if (textStatus == "success"){
-                            $('#pics').masonry('remove',obj).masonry('layout');
+                $.getJSON("/review/delete/" + pid,
+                    function(data, textStatus, jqXHR) {
+                        if (textStatus == "success") {
+                            $('#pics').masonry('remove', obj).masonry('layout');
                         }
                     }
                 );

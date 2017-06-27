@@ -1,4 +1,0 @@
-/*
-girlpic document
-*/
-package main
