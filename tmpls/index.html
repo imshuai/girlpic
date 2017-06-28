@@ -47,10 +47,6 @@
     <div class="container-fluid">
         <div class="row" id="pics"></div>
         <div class="row row-margin-top-50"></div>
-    </div>
-    <div class="footer">
-        <button type="button" class="btn btn-default center-block" id="more">加载更多</button>
-        <div class="row row-margin-top-50"></div>
         <div class="row row-margin-top-50"></div>
     </div>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -62,12 +58,18 @@
     <script src="/static/js/common.js"></script>
     <script>
         var current = 1;
-        $(function() {
+        $(function(){
             $('#pics').masonry();
-            $('#more').click(function() {
-                get_next_pics(current);
-            });
             get_next_pics(current);
+            $(window).scroll( function() {
+                totalheight = parseFloat($(window).height()) + parseFloat($(window).scrollTop());     //浏览器的高度加上滚动条的高度
+
+                if ($(document).height() <= totalheight)     //当文档的高度小于或者等于总的高度的时候，开始动态加载数据
+                {
+                    //加载数据
+                    get_next_pics(current);
+                }
+            });
         });
     </script>
 </body>

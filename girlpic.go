@@ -73,7 +73,7 @@ func getPics(page int) []tPic {
 		t.Like = obj.Like
 		t.Unlike = obj.Unlike
 		t.URL = obj.URL
-		pics[start+i] = t
+		pics[i] = t
 	}
 	return pics
 }
