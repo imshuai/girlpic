@@ -1,43 +1,17 @@
 package main
 
 import "github.com/garyburd/redigo/redis"
-import "encoding/json"
 
-//GirlPic define database struct for table girl_pic
-type GirlPic struct {
-	URL    string `json:"url"`
-	Like   int    `json:"like"`
-	Unlike int    `json:"unlike"`
-}
-
-func (gp GirlPic) serialize() string {
-	byts, err := json.Marshal(gp)
-	if err != nil {
-		errorlog("pic serialize fail with error:", err)
-		return ""
-	}
-	return string(byts)
-}
-
-func deserialize(str string) GirlPic {
-	gp := GirlPic{}
-	err := json.Unmarshal([]byte(str), &gp)
-	if err != nil {
-		errorlog("pic deserialize fail with error:", err)
-		return GirlPic{}
-	}
-	return gp
-}
-
-type tPic struct {
-	ID int `json:"id"`
-	GirlPic
+//Pic 定义图片数据
+type Pic struct {
+	ID  int    `json:"id"`
+	URL string `json:"url"`
 }
 
 func getPicNum(key string) int {
 	conn := rdb.Get()
 	defer conn.Close()
-	count, err := redis.Int(conn.Do("llen", key))
+	count, err := redis.Int(conn.Do("ZCARD", key))
 	//debug("pic count:", count)
 	if err != nil {
 		errorlog("get length of", key, "list fail with error:", err)
@@ -46,11 +20,10 @@ func getPicNum(key string) int {
 	return count
 }
 
-func getPics(page int) []tPic {
+func getPics(page int) []Pic {
 	num := getPicNum(listChecked)
 	if num == 0 {
-		debug("number of pics is:", num)
-		return nil
+		return make([]Pic, 0)
 	}
 	var start int
 	if start = (page - 1) * numPerPage; start < 0 || start > num {
@@ -59,20 +32,17 @@ func getPics(page int) []tPic {
 	end := start + numPerPage - 1
 	conn := rdb.Get()
 	defer conn.Close()
-	objs, err := redis.Strings(conn.Do("LRANGE", listChecked, start, end))
-	//debug("objs:", objs)
+	objs, err := redis.Strings(conn.Do("ZRANGE", listChecked, start, end))
+	//debug("start:", start, "end:", end)
 	if err != nil {
 		errorlog("get pics from", listChecked, "fail with error:", err)
-		return make([]tPic, 0)
+		return make([]Pic, 0)
 	}
-	pics := make([]tPic, numPerPage)
+	pics := make([]Pic, numPerPage)
 	for i, v := range objs {
-		obj := deserialize(v)
-		t := tPic{}
+		t := Pic{}
 		t.ID = start + i
-		t.Like = obj.Like
-		t.Unlike = obj.Unlike
-		t.URL = obj.URL
+		t.URL = v
 		pics[i] = t
 	}
 	return pics
@@ -86,19 +56,15 @@ func review() error {
 		return err
 	}
 	urls, err := redis.Strings(conn.Do("lrange", listTemp, 0, -1))
-	//debug("urls:", urls)
 	if err != nil {
 		return err
 	}
+	conn.Do("del", listTemp)
 	if len(urls) > 0 {
 		for _, url := range urls {
-			pic := GirlPic{
-				URL: url,
-			}
-			conn.Send("RPUSH", listChecked, pic.serialize())
+			conn.Send("ZADD", listChecked, 0, url)
 		}
 		_, err := conn.Do("")
-		//debug("data:", d)
 		if err != nil {
 			return err
 		}
@@ -106,37 +72,40 @@ func review() error {
 	return nil
 }
 
-func getPicWaitReview() []tPic {
+func getPicWaitReview() []Pic {
 	err := review()
 	if err != nil {
 		errorlog("move checked pics to reviewed list fail with error:", err)
 	}
-	pics := make([]tPic, 0)
+	pics := make([]Pic, 0)
 	count := getPicNum(listUnchecked)
 	if count == 0 {
 		return pics
 	}
 	conn := rdb.Get()
 	defer conn.Close()
-	for i := 0; i < count; i++ {
-		if i == numPerPage {
-			break
+	urls, err := redis.Strings(conn.Do("ZRANGE", listUnchecked, 0, func() int {
+		if count >= numPerPage {
+			return numPerPage - 1
 		}
-		t, err := redis.String(conn.Do("RPOPLPUSH", listUnchecked, listTemp))
-		if err != nil {
-			errorlog("move pics to temp list fail with error:", err, "and notviewed pics count:", count)
-			return make([]tPic, 0)
+		return -1
+	}()))
+	if err != nil {
+		errorlog("move pics to temp list fail with error:", err, "and notviewed pics count:", count)
+		return make([]Pic, 0)
+	}
+	conn.Do("ZREMRANGEBYRANK", listUnchecked, 0, func() int {
+		if count >= numPerPage {
+			return numPerPage - 1
 		}
-		tp := tPic{
-			ID: func() int {
-				if count > numPerPage {
-					return numPerPage - i - 1
-				}
-				return count - i - 1
-			}(),
-			GirlPic: GirlPic{
-				URL: t,
-			},
+		return -1
+	}())
+	for i, v := range urls {
+
+		conn.Do("RPUSH", listTemp, v)
+		tp := Pic{
+			ID:  i,
+			URL: v,
 		}
 		pics = append(pics, tp)
 	}

@@ -21,6 +21,9 @@ const (
 	listChecked   = "list:checked"
 	listUnchecked = "list:unchecked"
 	listTemp      = "list:temp"
+	listComment   = "list:comment"
+	setTemp1      = "setTemp1"
+	setTemp2      = "setTemp2"
 )
 
 func init() {

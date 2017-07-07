@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/garyburd/redigo/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/imshuai/serverchan"
 )
@@ -27,14 +26,18 @@ var wnotice = serverchan.NewServerChan(func() string {
 var newData = false
 
 func check() {
-	t := time.NewTicker(time.Hour * 12)
+	t := time.NewTicker(time.Hour * 24)
 	for {
 		select {
 		case <-t.C:
 			if newData {
 				conn := rdb.Get()
-				defer conn.Close()
-				count, err := redis.Int(conn.Do("llen", listUnchecked))
+				conn.Do("ZINTERSTORE", setTemp1, 2, listChecked, listUnchecked)
+				conn.Do("ZUNIONSTORE", setTemp2, 2, listUnchecked, setTemp1, "WEIGHTS", 1, 0, "AGGREGATE", "MIN")
+				conn.Do("RENAME", setTemp2, listUnchecked)
+				conn.Close()
+
+				count := getPicNum(listUnchecked)
 				if err != nil {
 					errorlog("check count of", listUnchecked, "fail with error:", err)
 					continue
@@ -47,6 +50,8 @@ func check() {
 }
 
 func main() {
+	go check()
+
 	e := gin.Default()
 
 	e.Static("/static", "./static")
@@ -68,7 +73,7 @@ func main() {
 		conn := rdb.Get()
 		defer conn.Close()
 		for _, v := range pics {
-			conn.Send("LPUSH", listUnchecked, v)
+			conn.Send("ZADD", listUnchecked, 0, v)
 		}
 		_, err = conn.Do("")
 		if err != nil {
@@ -84,27 +89,12 @@ func main() {
 	e.GET("/page/:i", func(c *gin.Context) {
 		page, err := strconv.Atoi(c.Param("i"))
 		if err != nil {
-			go info("pass wrong page param to route")
+			info("pass wrong page param to route")
 			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
 		pics := getPics(page)
 		c.JSON(http.StatusOK, pics)
-	})
-	e.GET("/comments", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "comment.html", nil)
-	})
-	e.POST("/comments/new", func(c *gin.Context) {
-		if c.Request.Header.Get("X-Requested-With") == "XMLHttpRequest" {
-			var com Comments
-			if c.Bind(&com) == nil {
-
-			} else {
-				c.AbortWithStatus(http.StatusBadRequest)
-			}
-		} else {
-			c.AbortWithStatus(http.StatusMethodNotAllowed)
-		}
 	})
 	manage := e.Group("/review", gin.BasicAuth(gin.Accounts{
 		"admin": "shuai6563",
@@ -124,7 +114,7 @@ func main() {
 		if c.Request.Header.Get("X-Requested-With") == "XMLHttpRequest" {
 			id, err := strconv.Atoi(c.Param("id"))
 			if err != nil {
-				errorlog("pass wrong id param to route")
+				info("pass wrong id param to route")
 				c.AbortWithStatus(http.StatusBadRequest)
 				return
 			}
